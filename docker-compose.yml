@@ -1,0 +1,43 @@
+name: groot
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: groot-agy-api:latest
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-8000}:8000"
+    env_file:
+      # Optional: compose happily starts without a .env file.
+      - path: .env
+        required: false
+    environment:
+      WORKSPACE_ROOT: /workspace
+      LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+      MAX_CONCURRENCY: "${MAX_CONCURRENCY:-2}"
+      DEFAULT_TIMEOUT_SECONDS: "${DEFAULT_TIMEOUT_SECONDS:-900}"
+      MAX_TIMEOUT_SECONDS: "${MAX_TIMEOUT_SECONDS:-3600}"
+      # Consumed by agy itself when set:
+      # GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+    volumes:
+      # --- THE IMPORTANT ONE ------------------------------------------------
+      # Persist agy's credential/profile store as a *directory*. Never bind
+      # mount individual files: agy writes settings.json with
+      # write-temp-then-rename, and a file-level mount pins the inode, which
+      # fails with "Device or resource busy".
+      - agy_auth:/home/app/.gemini/antigravity-cli
+      # The agent's working area. Swap for a named volume if you prefer.
+      - ./workspace:/workspace
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8000/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    stop_grace_period: 30s
+
+volumes:
+  agy_auth:
+    name: groot_agy_auth

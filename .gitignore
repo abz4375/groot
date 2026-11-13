@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Local config / secrets
+.env
+.env.*
+!.env.example
+
+# Runtime data
+workspace/*
+!workspace/.gitkeep
+agy_auth/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
